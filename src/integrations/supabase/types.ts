@@ -14,7 +14,237 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          preferred_language: string | null
+          updated_at: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          preferred_language?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          preferred_language?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_read: boolean | null
+          message: string
+          name: string
+          phone: string | null
+          replied_at: string | null
+          service_type: string | null
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          name: string
+          phone?: string | null
+          replied_at?: string | null
+          service_type?: string | null
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          name?: string
+          phone?: string | null
+          replied_at?: string | null
+          service_type?: string | null
+          subject?: string | null
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          budget: number | null
+          client_id: string | null
+          created_at: string
+          deadline: string | null
+          description: string | null
+          id: string
+          notes: string | null
+          priority: string | null
+          service_id: string | null
+          service_name: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          budget?: number | null
+          client_id?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          notes?: string | null
+          priority?: string | null
+          service_id?: string | null
+          service_name: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          budget?: number | null
+          client_id?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          notes?: string | null
+          priority?: string | null
+          service_id?: string | null
+          service_name?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portfolio_items: {
+        Row: {
+          category: string
+          client_name: string | null
+          completion_date: string | null
+          created_at: string
+          description_ar: string | null
+          description_en: string | null
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          is_published: boolean | null
+          project_url: string | null
+          technologies: string[] | null
+          title_ar: string
+          title_en: string | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          client_name?: string | null
+          completion_date?: string | null
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          project_url?: string | null
+          technologies?: string[] | null
+          title_ar: string
+          title_en?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          client_name?: string | null
+          completion_date?: string | null
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          project_url?: string | null
+          technologies?: string[] | null
+          title_ar?: string
+          title_en?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          category: string
+          created_at: string
+          description_ar: string | null
+          description_en: string | null
+          duration_days: number | null
+          id: string
+          is_active: boolean | null
+          name_ar: string
+          name_en: string | null
+          price_from: number
+          price_to: number | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          duration_days?: number | null
+          id?: string
+          is_active?: boolean | null
+          name_ar: string
+          name_en?: string | null
+          price_from: number
+          price_to?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          duration_days?: number | null
+          id?: string
+          is_active?: boolean | null
+          name_ar?: string
+          name_en?: string | null
+          price_from?: number
+          price_to?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
