@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Phone, 
   MessageCircle, 
@@ -11,10 +14,64 @@ import {
   Globe,
   Mail,
   Clock,
-  MapPin
+  MapPin,
+  Send
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Contact = () => {
+  const { toast } = useToast();
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+    service_type: ""
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .insert([formData]);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم إرسال رسالتك بنجاح! ✅",
+        description: "سنتواصل معك في أقرب وقت ممكن",
+      });
+
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+        service_type: ""
+      });
+    } catch (error) {
+      toast({
+        title: "حدث خطأ ⚠️",
+        description: "يرجى المحاولة مرة أخرى أو التواصل عبر واتساب",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const contactMethods = [
     {
       icon: <MessageCircle className="w-6 h-6" />,
@@ -92,6 +149,114 @@ const Contact = () => {
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             نحن متاحون على مدار 24 ساعة لتلبية احتياجاتك وتقديم أفضل الحلول الرقمية لمشروعك
           </p>
+        </div>
+
+        {/* Contact Form */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <Card className="shadow-elegant">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Send className="w-6 h-6 text-primary ml-3" />
+                أرسل لنا رسالة
+              </CardTitle>
+              <p className="text-muted-foreground">
+                املأ النموذج وسنتواصل معك خلال 24 ساعة
+              </p>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">الاسم *</label>
+                    <Input
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="اسمك الكامل"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">البريد الإلكتروني *</label>
+                    <Input
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="example@email.com"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">رقم الهاتف</label>
+                    <Input
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="+20 xxx xxx xxxx"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">نوع الخدمة</label>
+                    <select
+                      name="service_type"
+                      value={formData.service_type}
+                      onChange={handleInputChange}
+                      className="w-full p-2 border border-input rounded-md bg-background"
+                    >
+                      <option value="">اختر نوع الخدمة</option>
+                      <option value="graphic_design">تصميم جرافيك</option>
+                      <option value="social_media">سوشيال ميديا</option>
+                      <option value="marketing">تسويق إلكتروني</option>
+                      <option value="web_development">مواقع ومتاجر</option>
+                      <option value="other">أخرى</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">الموضوع</label>
+                  <Input
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleInputChange}
+                    placeholder="موضوع الرسالة"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">الرسالة *</label>
+                  <Textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    placeholder="اكتب رسالتك هنا..."
+                    rows={4}
+                    required
+                  />
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  variant="hero"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    "جاري الإرسال..."
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 ml-2" />
+                      إرسال الرسالة
+                    </>
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">

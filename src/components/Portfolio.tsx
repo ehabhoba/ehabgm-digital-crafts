@@ -1,10 +1,62 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Eye, Star } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Portfolio = () => {
-  const portfolioItems = [
+  const [portfolioItems, setPortfolioItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPortfolioItems();
+  }, []);
+
+  const fetchPortfolioItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('portfolio_items')
+        .select('*')
+        .eq('is_published', true)
+        .order('is_featured', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPortfolioItems(data || []);
+    } catch (error) {
+      console.error('Error fetching portfolio items:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getCategoryName = (category: string) => {
+    switch (category) {
+      case 'graphic_design':
+        return 'تصميم جرافيكي';
+      case 'marketing':
+        return 'تسويق رقمي';
+      case 'web_development':
+        return 'تطوير ويب';
+      case 'ui_ux':
+        return 'تصميم UI/UX';
+      default:
+        return category;
+    }
+  };
+
+  if (loading) {
+    return (
+      <section id="portfolio" className="py-20">
+        <div className="container mx-auto px-4 text-center">
+          <div className="animate-pulse">جاري تحميل الأعمال...</div>
+        </div>
+      </section>
+    );
+  }
+
+  const staticPortfolioItems = [
     {
       title: "مجموعة أعمال التصميم الجرافيكي",
       description: "شعارات، هويات بصرية، وتصاميم إبداعية لمختلف المشاريع",
@@ -42,27 +94,39 @@ const Portfolio = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          {portfolioItems.map((item, index) => (
-            <Card key={index} className="group hover:shadow-elegant transition-all duration-300 hover:-translate-y-2">
+          {(portfolioItems.length > 0 ? portfolioItems : staticPortfolioItems).map((item, index) => (
+            <Card key={item.id || index} className="group hover:shadow-elegant transition-all duration-300 hover:-translate-y-2">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <Badge variant="outline">{item.category}</Badge>
-                  <div className="flex items-center space-x-1">
-                    <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                    <span className="text-sm font-medium">{item.rating}</span>
-                  </div>
+                  <Badge variant="outline">
+                    {portfolioItems.length > 0 ? getCategoryName(item.category) : item.category}
+                  </Badge>
+                  {portfolioItems.length > 0 && item.is_featured && (
+                    <Badge variant="default" className="bg-accent">مميز</Badge>
+                  )}
+                  {portfolioItems.length === 0 && (
+                    <div className="flex items-center space-x-1">
+                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                      <span className="text-sm font-medium">{item.rating}</span>
+                    </div>
+                  )}
                 </div>
                 
                 <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
-                  {item.title}
+                  {portfolioItems.length > 0 ? item.title_ar : item.title}
                 </h3>
                 
                 <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
-                  {item.description}
+                  {portfolioItems.length > 0 ? item.description_ar : item.description}
                 </p>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-primary">{item.projects}</span>
+                  <span className="text-sm font-medium text-primary">
+                    {portfolioItems.length > 0 
+                      ? (item.completion_date ? `مكتمل ${new Date(item.completion_date).getFullYear()}` : 'مشروع حديث')
+                      : item.projects
+                    }
+                  </span>
                   <Button variant="ghost" size="sm" className="text-primary hover:text-primary-foreground hover:bg-primary">
                     <Eye className="w-4 h-4 ml-1" />
                     عرض الأعمال

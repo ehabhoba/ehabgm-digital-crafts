@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,9 +11,78 @@ import {
   TrendingUp,
   ArrowRight
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Services = () => {
-  const services = [
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const fetchServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true)
+        .order('category');
+
+      if (error) throw error;
+      setServices(data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getServiceIcon = (category: string) => {
+    switch (category) {
+      case 'graphic_design':
+        return <Palette className="w-8 h-8" />;
+      case 'marketing':
+        return <Megaphone className="w-8 h-8" />;
+      case 'web_development':
+        return <Globe className="w-8 h-8" />;
+      case 'social_media':
+        return <TrendingUp className="w-8 h-8" />;
+      case 'seo':
+        return <Search className="w-8 h-8" />;
+      default:
+        return <FileText className="w-8 h-8" />;
+    }
+  };
+
+  const getCategoryName = (category: string) => {
+    switch (category) {
+      case 'graphic_design':
+        return 'التصميم الجرافيكي';
+      case 'marketing':
+        return 'التسويق الرقمي';
+      case 'web_development':
+        return 'تطوير الويب';
+      case 'social_media':
+        return 'سوشيال ميديا';
+      case 'seo':
+        return 'تحسين محركات البحث';
+      default:
+        return 'خدمات أخرى';
+    }
+  };
+
+  if (loading) {
+    return (
+      <section id="services" className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4 text-center">
+          <div className="animate-pulse">جاري تحميل الخدمات...</div>
+        </div>
+      </section>
+    );
+  }
+
+  const staticServices = [
     {
       icon: <Palette className="w-8 h-8" />,
       title: "التصميم الجرافيكي",
@@ -77,14 +147,14 @@ const Services = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service, index) => (
+          {(services.length > 0 ? services : staticServices).map((service, index) => (
             <Card 
-              key={index} 
+              key={service.id || index} 
               className={`relative group hover:shadow-elegant transition-all duration-300 hover:-translate-y-2 ${
-                service.popular ? 'ring-2 ring-primary ring-opacity-50' : ''
+                index === 0 ? 'ring-2 ring-primary ring-opacity-50' : ''
               }`}
             >
-              {service.popular && (
+              {index === 0 && (
                 <Badge className="absolute -top-3 right-4 bg-accent text-accent-foreground">
                   الأكثر طلباً
                 </Badge>
@@ -92,27 +162,49 @@ const Services = () => {
               
               <CardHeader className="text-center">
                 <div className="w-16 h-16 bg-gradient-primary rounded-lg flex items-center justify-center mx-auto mb-4 text-white group-hover:scale-110 transition-transform duration-300">
-                  {service.icon}
+                  {services.length > 0 ? getServiceIcon(service.category) : service.icon}
                 </div>
-                <CardTitle className="text-xl font-bold">{service.title}</CardTitle>
+                <CardTitle className="text-xl font-bold">
+                  {services.length > 0 ? service.name_ar : service.title}
+                </CardTitle>
                 <CardDescription className="text-muted-foreground">
-                  {service.description}
+                  {services.length > 0 ? service.description_ar : service.description}
                 </CardDescription>
               </CardHeader>
 
               <CardContent className="space-y-6">
-                <ul className="space-y-3">
-                  {service.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-center text-sm">
+                {services.length > 0 ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center text-sm">
                       <div className="w-2 h-2 bg-primary rounded-full ml-3 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+                      {getCategoryName(service.category)}
+                    </div>
+                    {service.duration_days && (
+                      <div className="flex items-center text-sm">
+                        <div className="w-2 h-2 bg-primary rounded-full ml-3 flex-shrink-0" />
+                        مدة التنفيذ: {service.duration_days} أيام
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <ul className="space-y-3">
+                    {service.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-center text-sm">
+                        <div className="w-2 h-2 bg-primary rounded-full ml-3 flex-shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
                 <div className="border-t pt-6">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-2xl font-bold text-primary">{service.priceFrom}</span>
+                    <span className="text-2xl font-bold text-primary">
+                      {services.length > 0 
+                        ? `من ${service.price_from} جنيه` 
+                        : service.priceFrom
+                      }
+                    </span>
                     <Badge variant="outline">يبدأ</Badge>
                   </div>
                   <Button className="w-full group" variant="outline">
